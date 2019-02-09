@@ -4,10 +4,21 @@
 using namespace std;
 
 const float Network::learningRate = 2;
-Network::Network(const std::vector<unsigned short> &hiddenLayers, const std::vector<std::vector<float> > &_entries,
+/**
+ *
+ * @param hiddenLayersArchitecture [[nombre de neuron][nombre neuron]] create a network of 2 layers without counting the input layer
+ * @param _entries input data
+ * @param _output data
+ * @param _numberOfEpochs
+ * @param _regularizationTerm this term is used to change the cost, it helps redure overfitting
+ * @param _indexStartDiscriminator index+1 at which the discriminator begin
+ */
+Network::Network(const std::vector<unsigned short> &hiddenLayersArchitecture,
+                 const std::vector<std::vector<float> > &_entries,
                  const std::vector<std::vector<float> > &_output, const unsigned short &_numberOfEpochs,
-                 const double &_regularizationTerm) {
+                 const double &_regularizationTerm, const unsigned &_indexStartDiscriminator) {
 
+    indexStartDiscriminator = _indexStartDiscriminator;
     regularizationTerm = _regularizationTerm;
     numberOfEpochs = _numberOfEpochs;
     //distribution of the entry data on epochs
@@ -42,22 +53,17 @@ Network::Network(const std::vector<unsigned short> &hiddenLayers, const std::vec
     }
     */
 
-
-
-    Layer *  firstLayer = new Layer(hiddenLayers[0],(unsigned short)entries[0][0].size());
+    Layer *  firstLayer = new Layer(hiddenLayersArchitecture[0],(unsigned short)entries[0][0].size());
     layers.emplace_back(firstLayer );  //emplace_back plus opti que push_back
 
-
-
-
-
-    for (unsigned i=1; i<hiddenLayers.size(); ++i){
-        auto * layer = new Layer(hiddenLayers[i],hiddenLayers[i-1]);
+    for (unsigned i=1; i<hiddenLayersArchitecture.size(); ++i){
+        auto * layer = new Layer(hiddenLayersArchitecture[i],hiddenLayersArchitecture[i-1]);
         layers.emplace_back( layer );  //emplace_back plus opti que push_back
     }
-    Layer * lastLayer = new Layer((unsigned short)output[0][0].size(),hiddenLayers[hiddenLayers.size()-1]);
+    Layer * lastLayer = new Layer((unsigned short)output[0][0].size(),hiddenLayersArchitecture[hiddenLayersArchitecture.size()-1]);
     layers.emplace_back(lastLayer );  //emplace_back plus opti que push_back
-}
+}//constructor
+
 
 Network::~Network() {
     //dtor
@@ -66,13 +72,31 @@ Network::~Network() {
 
 
 void Network::feedforward(const unsigned short numberOfTheEpoch) {
-    layers[0]->processMyNeuronsActivations(entries[numberOfTheEpoch]);
-
-
-    for(unsigned i=1; i < layers.size(); ++i){
-        layers[i]->processMyNeuronsActivations(layers[i-1]->getMyactivations());
+    std::vector<std::vector<float>> real;
+    std::vector<std::vector<float>> fake;
+    unsigned i =0;
+    for(auto data: entries[numberOfTheEpoch]){
+        if(output[numberOfTheEpoch][i][0] == 1){  // si la sortie vaut vraie
+            real.emplace_back(data);
+        }else{
+            fake.emplace_back(data);
+        }
+            ++i;
     }
-}
+
+    //managing fake entries
+    layers[0]->processMyNeuronsActivations(fake);
+    for(unsigned y=1; y < layers.size(); ++y){
+        layers[y]->processMyNeuronsActivations(layers[y-1]->getMyactivations());
+    }
+
+    //managing real entries
+    layers[indexStartDiscriminator-1]->processMyNeuronsActivations(real);
+    for(unsigned y=indexStartDiscriminator; y < layers.size(); ++y){
+        layers[y]->processMyNeuronsActivations(layers[y-1]->getMyactivations());
+    }
+
+}//feedforward
 
 vector<vector<float>> Network::testFeedforward(const std::vector<float> &entries) {
     //pour les test
@@ -88,7 +112,7 @@ vector<vector<float>> Network::testFeedforward(const std::vector<float> &entries
     vector<vector<float>> result = layers[layers.size()-1]->getMyactivations();
     resetActivations();
     return result;
-}
+}//testFeedforward
 
 
 std::ostream& operator<< (std::ostream& stream, Network & network) {
@@ -102,7 +126,7 @@ std::ostream& operator<< (std::ostream& stream, Network & network) {
     }
     stream << '\n';
     return stream;
-}
+}//surcharge <<
 
 const vector<Layer *> &Network::getLayers() const {
     return layers;
@@ -170,13 +194,14 @@ void Network::main() {
             std::cout <<'\n'<< " numberOfTheEpoch " << numberOfTheEpoch <<endl;
         }
         feedforward(numberOfTheEpoch);
+        std::cout << *this;
 
-        processCost(numberOfTheEpoch);
-        std::cout << "\nEpoch : "<< numberOfTheEpoch<< " mean error "<< processMeanError();
+        //processCost(numberOfTheEpoch);
+       // std::cout << "\nEpoch : "<< numberOfTheEpoch<< " mean error "<< processMeanError();
 
-        backPropagation(numberOfTheEpoch);
+        //backPropagation(numberOfTheEpoch);
 
-        gradientDescent(numberOfTheEpoch);
+        //gradientDescent(numberOfTheEpoch);
 
         resetActivations();
     }

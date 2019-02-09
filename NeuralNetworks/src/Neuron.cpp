@@ -14,8 +14,6 @@ Neuron::Neuron( const unsigned short & nbWeights )
         std::cout <<" "<< i;
         if(rand()%2){
             weights.emplace_back(static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/float(maxWeight))) );//-1 *rand() % maxWeight);
-
-
         }
         else{
             weights.emplace_back(- static_cast <float> (rand()) / (static_cast <float> (RAND_MAX/float(maxWeight))) );
@@ -98,9 +96,9 @@ std::vector<float> Neuron::getError() {
 std::ostream &operator<<(std::ostream &os, const Neuron &neuron) {
     os << "neuron :";// << neuron.bias;
     //os<< neuron.error.size();
-    for (auto activation : neuron.weights) {
+    for (auto data : neuron.activations) {
 
-        os << activation;
+        os << data;
         os << "  ";
     }
 
