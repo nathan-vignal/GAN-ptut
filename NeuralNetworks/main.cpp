@@ -24,7 +24,7 @@ int main()
     vector<vector<float>> output = {{0,1,1,0},{1,0,1,0},{1,1,1,0},{0,0,1,0}};*/
                     //Network(nombre de layer, nombre de neuron par layer, input, output)
 
-    Network network({2,2}, input, output, 100, 0.1, 2);
+    Network network({2,2}, input, output, 5, 0.1, 2);
     //network.feedforward(0);
     //network.backPropagation(0)
 

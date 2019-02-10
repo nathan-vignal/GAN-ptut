@@ -71,7 +71,8 @@ Network::~Network() {
 
 
 
-void Network::feedforward(const unsigned short numberOfTheEpoch) {
+void Network::feedforward(const unsigned short numberOfTheEpoch, const bool &trainGenerator) {
+    trainGenerator ? std::cout<<"true" : std::cout<<"false";
     std::vector<std::vector<float>> real;
     std::vector<std::vector<float>> fake;
     unsigned i =0;
@@ -89,12 +90,14 @@ void Network::feedforward(const unsigned short numberOfTheEpoch) {
     for(unsigned y=1; y < layers.size(); ++y){
         layers[y]->processMyNeuronsActivations(layers[y-1]->getMyactivations());
     }
-
-    //managing real entries
-    layers[indexStartDiscriminator-1]->processMyNeuronsActivations(real);
-    for(unsigned y=indexStartDiscriminator; y < layers.size(); ++y){
-        layers[y]->processMyNeuronsActivations(layers[y-1]->getMyactivations());
+    if(!trainGenerator){
+        //managing real entries
+        layers[indexStartDiscriminator-1]->processMyNeuronsActivations(real);
+        for(unsigned y=indexStartDiscriminator; y < layers.size(); ++y){
+            layers[y]->processMyNeuronsActivations(layers[y-1]->getMyactivations());
+        }
     }
+
 
 }//feedforward
 
@@ -193,13 +196,15 @@ void Network::main() {
         if(numberOfTheEpoch%1000 == 0){
             std::cout <<'\n'<< " numberOfTheEpoch " << numberOfTheEpoch <<endl;
         }
-        feedforward(numberOfTheEpoch);
+        bool trainGenerator = numberOfTheEpoch %2 ==0;
+
+        feedforward(numberOfTheEpoch, trainGenerator);
         std::cout << *this;
 
         //processCost(numberOfTheEpoch);
        // std::cout << "\nEpoch : "<< numberOfTheEpoch<< " mean error "<< processMeanError();
 
-        //backPropagation(numberOfTheEpoch);
+        backPropagation(numberOfTheEpoch, trainGenerator);
 
         //gradientDescent(numberOfTheEpoch);
 
@@ -207,17 +212,36 @@ void Network::main() {
     }
 }
 
-void Network::backPropagation(const unsigned short &numberOfTheEpoch) {
+void Network::backPropagation(const unsigned short &numberOfTheEpoch, const bool &trainGenerator) {
     //process the partial derivative with respect to z for each layer
-    //cout << "batch backpropagation"<<endl;
 
-    layers[layers.size()-1]->processLastLayerError(output[numberOfTheEpoch]); //process the partial derivative of c with respect to z for the last layer
-    //std::cout << * layers[layers.size()-1];
-    for(unsigned i = (unsigned)layers.size()-2 ; i >= 0 && i<999999; --i){ //use the partial derivative c/z of the n+1 layer to process it for n
-        //condition i<99999 car 0-1 = 42000000 dans le référentiel des unsigned
-        layers[i]->processLayerError(  layers[i+1] );
+    //if we want to train the generator we can throw the real data
+    if(trainGenerator){
+        std::vector<std::vector<float>> outputToTrainOn ;
+        for(auto data : output[numberOfTheEpoch]){
+            if(data[0] == 0)
+                outputToTrainOn.emplace_back(data);
+        }
+        layers[layers.size()-1]->processLastLayerError(outputToTrainOn); //process the partial derivative of c with respect to z for the last layer
+        //std::cout << * layers[layers.size()-1];
+        for(unsigned i = (unsigned)layers.size()-2 ; i >= 0 && i<999999; --i){ //use the partial derivative c/z of the n+1 layer to process it for n
+            //condition i<99999 car 0-1 = 42000000 dans le référentiel des unsigned
+            layers[i]->processLayerError(  layers[i+1] );
+        }
+
+    }else{ //if we are training the discriminator we don't backpropagate all the way to the beginning
+
+        layers[layers.size()-1]->processLastLayerError(output[numberOfTheEpoch]); //process the partial derivative of c with respect to z for the last layer
+        //std::cout << * layers[layers.size()-1];
+        for(unsigned i = (unsigned)layers.size()-2 ; i >= indexStartDiscriminator && i<999999 ; --i){ //use the partial derivative c/z of the n+1 layer to process it for n
+            //condition i<99999 car 0-1 = 42000000 dans le référentiel des unsigned
+            layers[i]->processLayerError(  layers[i+1] );
+        }
 
     }
+
+
+
 }
 
 void Network::gradientDescent(unsigned short batchNumber) {

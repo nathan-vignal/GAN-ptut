@@ -16,7 +16,7 @@ void Feeder::initEntrieAndExit() {
 
     std::pair<std::vector<float>, std::vector<float>> pair;
 
-    for (unsigned i = 0; i < 100; ++i) {
+    for (unsigned i = 0; i < 10; ++i) {
         //gestion fake
         pair.first = {static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX)};
         pair.second = {0};

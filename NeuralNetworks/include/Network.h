@@ -30,13 +30,13 @@ public:
     const std::vector<float> &getCost() const;
     const std::vector<Layer *> &getLayers() const;
     void main();
-    void feedforward( unsigned short numberOfTheEpoch);
+    void feedforward(const unsigned short numberOfTheEpoch, const bool &trainGenerator);
     std::vector<std::vector<float>> testFeedforward(const std::vector<float> &entries);
     void processCost(const unsigned int &batchNumber);
     double processMeanError();
     void resetActivations();
     //void vectorResizing(std::vector<std::vector<float>> vector, unsigned rows, unsigned columns );
-    void backPropagation(const unsigned short &numberOfTheEpoch);
+    void backPropagation(const unsigned short &numberOfTheEpoch, const bool &trainGenerator);
     void gradientDescent(unsigned short batchNumber);
     friend std::ostream& operator<< (std::ostream& stream, Network & network);
 };
