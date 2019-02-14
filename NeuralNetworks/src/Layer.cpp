@@ -112,13 +112,6 @@ void Layer::processLayerError(const Layer *nextLayer)  {
 
 
 
-
-
-
-
-
-
-
 void Layer::layerGradientDescent(const std::vector<std::vector<float>> &previousLayerActivation,
                                  const double &regularizationTerm) {
     for(auto neuron : neurons){
@@ -141,4 +134,17 @@ std::vector<std::vector<float>> Layer::getNeuronErrors()const{
 
 const std::vector<Neuron *> &Layer::getNeurons() const {
     return neurons;
+}
+
+void Layer::addActivations(std::vector<std::vector<float>> newActivations) {
+    for(auto layerActivations: newActivations){
+        for(unsigned short neuronNumber = 0; neuronNumber < layerActivations.size();++neuronNumber){
+            neurons[neuronNumber]->addActivation(layerActivations[neuronNumber]);
+        }
+
+
+
+    }
+
+
 }

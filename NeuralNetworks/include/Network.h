@@ -12,6 +12,8 @@ private:
     unsigned indexStartDiscriminator;
     std::vector<float> costs;
     std::vector<std::vector<std::vector<float> >> entries;
+    std::vector<std::vector<std::vector<float> >> fakeEntries;
+    std::vector<std::vector<std::vector<float> >> realEntries;
     std::vector<std::vector<std::vector<float> >> output;
     unsigned short numberOfEpochs;
     std::vector<Layer *> layers;
@@ -37,7 +39,7 @@ public:
     void resetActivations();
     //void vectorResizing(std::vector<std::vector<float>> vector, unsigned rows, unsigned columns );
     void backPropagation(const unsigned short &numberOfTheEpoch, const bool &trainGenerator);
-    void gradientDescent(unsigned short batchNumber);
+    void gradientDescent(unsigned short batchNumber, const bool &trainGenerator);
     friend std::ostream& operator<< (std::ostream& stream, Network & network);
 };
 

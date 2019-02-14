@@ -15,18 +15,13 @@ private:
 
     std::vector<float> activations;
     std::vector<float> preActivation;
-public:
-    const std::vector<float> &getPreActivation() const;
-
-private:
     std::vector<float> weights;
     std::vector<float> errors;
+    float bias;
+
 public:
     const std::vector<float> &getErrors() const;
-
-private:
-    float bias;
-public:
+    const std::vector<float> &getPreActivation() const;
     Neuron( const unsigned short & nbWeights );
     virtual ~Neuron();
     void processActivations(const std::vector<std::vector<float>>& previousLayerActivations);
@@ -43,13 +38,13 @@ public:
     void debugSetBias(int newBias);
 
     void addError(float error);
-    void
-    gradientDescent(const std::vector<std::vector<float>> &previousLayerActivations, const double &regularizationTerm);
+    void gradientDescent(const std::vector<std::vector<float>> &previousLayerActivations, const double &regularizationTerm);
 
     void resetActivations();
     void processLastNeuronError(const std::vector<float> &outputError);
 
     friend std::ostream &operator<<(std::ostream &os, const Neuron &neuron);
+    void addActivation(const float & newActivation);
 };
 
 

@@ -96,7 +96,7 @@ std::vector<float> Neuron::getError() {
 std::ostream &operator<<(std::ostream &os, const Neuron &neuron) {
     os << "neuron :";// << neuron.bias;
     //os<< neuron.error.size();
-    for (auto data : neuron.activations) {
+    for (auto data : neuron.errors) {
 
         os << data;
         os << "  ";
@@ -158,6 +158,10 @@ void Neuron::gradientDescent(const std::vector<std::vector<float>> &previousLaye
             //calcul -> -(learningRate/feedforwards) *  (weightChangesSummed)-(learningRate * lamba)/feedforwards)*weight
     }
 
+}
+void Neuron::addActivation(const float &newActivation) {
+    //activations.emplace_back(2.2);
+    activations.emplace_back(newActivation);
 }
 
 

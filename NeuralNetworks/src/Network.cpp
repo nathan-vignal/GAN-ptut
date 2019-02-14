@@ -25,33 +25,55 @@ Network::Network(const std::vector<unsigned short> &hiddenLayersArchitecture,
     for(unsigned i = 1 ; i<=numberOfEpochs; ++i){
         entries.emplace_back( std::vector<std::vector<float> > (&_entries[(_entries.size()/numberOfEpochs)*(i-1)],&_entries[(_entries.size()/numberOfEpochs)*(i)]));
     }
-
+    //distribution of the output data on epochs
     for(unsigned i = 1 ; i<=numberOfEpochs; ++i){
         output.emplace_back( std::vector<std::vector<float> > (&_output[(_output.size()/numberOfEpochs)*(i-1)],&_output[(_output.size()/numberOfEpochs)*(i)]));
+    }
+
+
+    //separating real entries from fake ones
+    for(unsigned numberOfTheEpoch=0; numberOfTheEpoch<output.size();++numberOfTheEpoch){
+        std::vector<std::vector<float>> realEntriesEpoch;
+        std::vector<std::vector<float>> fakeEntriesEpoch;
+
+        for(unsigned feedForwardNumber =0;
+        feedForwardNumber< entries[numberOfTheEpoch][feedForwardNumber].size();
+        ++feedForwardNumber){
+            if(output[numberOfTheEpoch][feedForwardNumber][0] == 1){  // if the feedForward is a real data
+
+                realEntriesEpoch.emplace_back(entries[numberOfTheEpoch][feedForwardNumber]);
+            }else{
+                fakeEntriesEpoch.emplace_back(entries[numberOfTheEpoch][feedForwardNumber]);
+            }
+        }
+        realEntries.emplace_back(realEntriesEpoch);
+        fakeEntries.emplace_back(fakeEntriesEpoch);
+
     }
 /*
     for(auto & first : entries){
         cout << "\n";
         for(auto & second : first){
-            cout << "[";
+            cout << "[ ";
             for( auto & data : second){
                 cout << data <<" ";
             }
             cout << "]";
         }
     }
+
     std::cout <<'\n'<<'\n';
     for(auto & first : output){
         cout << "\n";
         for(auto & second : first){
-            cout << "[";
+            cout << "[ ";
             for( auto & data : second){
                 cout << data <<" ";
             }
             cout << "]";
         }
     }
-    */
+*/
 
     Layer *  firstLayer = new Layer(hiddenLayersArchitecture[0],(unsigned short)entries[0][0].size());
     layers.emplace_back(firstLayer );  //emplace_back plus opti que push_back
@@ -73,45 +95,30 @@ Network::~Network() {
 
 void Network::feedforward(const unsigned short numberOfTheEpoch, const bool &trainGenerator) {
     trainGenerator ? std::cout<<"true" : std::cout<<"false";
-    std::vector<std::vector<float>> real;
-    std::vector<std::vector<float>> fake;
-    unsigned i =0;
-    for(auto data: entries[numberOfTheEpoch]){
-        if(output[numberOfTheEpoch][i][0] == 1){  // si la sortie vaut vraie
-            real.emplace_back(data);
-        }else{
-            fake.emplace_back(data);
-        }
-            ++i;
-    }
-
-    //managing fake entries
-    layers[0]->processMyNeuronsActivations(fake);
-    for(unsigned y=1; y < layers.size(); ++y){
+    //going throught the generator and stopping at the begginning of the discriminator
+    layers[0]->processMyNeuronsActivations(fakeEntries[numberOfTheEpoch]);
+    for(unsigned y=1; y < indexStartDiscriminator; ++y){
         layers[y]->processMyNeuronsActivations(layers[y-1]->getMyactivations());
     }
+    //inserting real data into the last generator layer as activation
     if(!trainGenerator){
-        //managing real entries
-        layers[indexStartDiscriminator-1]->processMyNeuronsActivations(real);
+        layers[indexStartDiscriminator-1]->addActivations(realEntries[numberOfTheEpoch]); // utile pour la backpropagation
+    }
+    //going throught the rest of the network(the disciminator)
         for(unsigned y=indexStartDiscriminator; y < layers.size(); ++y){
             layers[y]->processMyNeuronsActivations(layers[y-1]->getMyactivations());
         }
-    }
+
 
 
 }//feedforward
 
 vector<vector<float>> Network::testFeedforward(const std::vector<float> &entries) {
-    //pour les test
-    /*for(auto neuron : this->layers[this->layers.size()-1]->getNeurons()){
-        neuron->debugSetBias(10);
-    }*/
-    //fin pour les test
+
     layers[0]->processMyNeuronsActivations({entries});
     for(unsigned i=1; i < layers.size(); ++i){
         layers[i]->processMyNeuronsActivations(layers[i-1]->getMyactivations());
     }
-    //std::cout << * layers[layers.size()-1];
     vector<vector<float>> result = layers[layers.size()-1]->getMyactivations();
     resetActivations();
     return result;
@@ -196,17 +203,17 @@ void Network::main() {
         if(numberOfTheEpoch%1000 == 0){
             std::cout <<'\n'<< " numberOfTheEpoch " << numberOfTheEpoch <<endl;
         }
-        bool trainGenerator = numberOfTheEpoch %2 ==0;
+        bool trainGenerator = false;// numberOfTheEpoch %2 ==0; REMETTRE LA PARTIE COMMENTÉ // On train chacun son tour les réseaux
 
         feedforward(numberOfTheEpoch, trainGenerator);
-        std::cout << *this;
+
 
         //processCost(numberOfTheEpoch);
        // std::cout << "\nEpoch : "<< numberOfTheEpoch<< " mean error "<< processMeanError();
 
         backPropagation(numberOfTheEpoch, trainGenerator);
-
-        //gradientDescent(numberOfTheEpoch);
+        //std::cout << *this;
+        gradientDescent(numberOfTheEpoch, trainGenerator);
 
         resetActivations();
     }
@@ -232,6 +239,7 @@ void Network::backPropagation(const unsigned short &numberOfTheEpoch, const bool
     }else{ //if we are training the discriminator we don't backpropagate all the way to the beginning
 
         layers[layers.size()-1]->processLastLayerError(output[numberOfTheEpoch]); //process the partial derivative of c with respect to z for the last layer
+
         //std::cout << * layers[layers.size()-1];
         for(unsigned i = (unsigned)layers.size()-2 ; i >= indexStartDiscriminator && i<999999 ; --i){ //use the partial derivative c/z of the n+1 layer to process it for n
             //condition i<99999 car 0-1 = 42000000 dans le référentiel des unsigned
@@ -244,12 +252,23 @@ void Network::backPropagation(const unsigned short &numberOfTheEpoch, const bool
 
 }
 
-void Network::gradientDescent(unsigned short batchNumber) {
+void Network::gradientDescent(unsigned short batchNumber, const bool &trainGenerator) {
 
-    for(unsigned layerNumber =layers.size()-1; layerNumber>0;--layerNumber  ){
-        layers[layerNumber]->layerGradientDescent(layers[layerNumber - 1]->getMyactivations(), regularizationTerm);
+    if(trainGenerator){//if we are training the generator
+        for(unsigned layerNumber =layers.size()-1; layerNumber>0;--layerNumber  ){
+            layers[layerNumber]->layerGradientDescent(layers[layerNumber - 1]->getMyactivations(), regularizationTerm);
+        }
+        layers[0]->layerGradientDescent(entries[batchNumber], regularizationTerm);
+    }else{//if we are training the discriminator
+
+
+        for(unsigned layerNumber =layers.size()-1; layerNumber>=indexStartDiscriminator;--layerNumber  ){
+            layers[layerNumber]->layerGradientDescent(layers[layerNumber - 1]->getMyactivations(), regularizationTerm);
+        }
+
     }
-    layers[0]->layerGradientDescent(entries[batchNumber], regularizationTerm);
+
+
 
 }
 

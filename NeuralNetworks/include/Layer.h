@@ -27,7 +27,7 @@ public:
     std::vector<std::vector<float>> getNeuronErrors()const;
     void layerGradientDescent(const std::vector<std::vector<float>> &previousLayerActivation,
                                   const double &regularizationTerm);
-
+    void addActivations(std::vector<std::vector<float>> newActivations);
 
     std::vector<std::vector<float>> getNeuronWeight();
     friend std::ostream& operator<< (std::ostream& stream, Layer & layer);
