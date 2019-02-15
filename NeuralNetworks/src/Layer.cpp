@@ -38,6 +38,7 @@ void Layer::processMyNeuronsActivations(const std::vector<std::vector<float>> &p
 
 std::ostream& operator<<(std::ostream &stream, Layer &layer) {
     for (Neuron *neuron : layer.neurons) {
+
         stream <<  * neuron;
     }
 
@@ -79,12 +80,7 @@ void Layer::processLastLayerError(std::vector<std::vector<float>> output){
  * @param nextLayer
  */
 void Layer::processLayerError(const Layer *nextLayer)  {
-    //use to debug
-    /*std::cout << " PROCESS layer error" <<std::endl;
-    for(auto neuron : nextLayer.getNeurons()){
-        std::cout << * neuron;
-        std::cout << '\n' <<std::endl;
-    }*/
+
 
     //pour chaque neurone
     for(unsigned neuronNumber = 0; neuronNumber < neurons.size(); ++neuronNumber){
@@ -113,10 +109,10 @@ void Layer::processLayerError(const Layer *nextLayer)  {
 
 
 void Layer::layerGradientDescent(const std::vector<std::vector<float>> &previousLayerActivation,
-                                 const double &regularizationTerm) {
+                                 const double &regularizationTerm, const bool &trainingGenerator) {
     for(auto neuron : neurons){
         //std::cout << *neuron;
-        neuron->gradientDescent(previousLayerActivation, regularizationTerm);
+        neuron->gradientDescent(previousLayerActivation, regularizationTerm, trainingGenerator);
     }
 
 

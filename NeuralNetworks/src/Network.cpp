@@ -3,7 +3,7 @@
 #include <math.h>
 using namespace std;
 
-const float Network::learningRate = 2;
+const float Network::learningRate = 0.1;
 /**
  *
  * @param hiddenLayersArchitecture [[nombre de neuron][nombre neuron]] create a network of 2 layers without counting the input layer
@@ -37,10 +37,10 @@ Network::Network(const std::vector<unsigned short> &hiddenLayersArchitecture,
         std::vector<std::vector<float>> fakeEntriesEpoch;
 
         for(unsigned feedForwardNumber =0;
-        feedForwardNumber< entries[numberOfTheEpoch][feedForwardNumber].size();
-        ++feedForwardNumber){
-            if(output[numberOfTheEpoch][feedForwardNumber][0] == 1){  // if the feedForward is a real data
+            feedForwardNumber< entries[numberOfTheEpoch].size();
+            ++feedForwardNumber){
 
+            if(output[numberOfTheEpoch][feedForwardNumber][0] == 1){  // if the feedForward is real data
                 realEntriesEpoch.emplace_back(entries[numberOfTheEpoch][feedForwardNumber]);
             }else{
                 fakeEntriesEpoch.emplace_back(entries[numberOfTheEpoch][feedForwardNumber]);
@@ -50,6 +50,8 @@ Network::Network(const std::vector<unsigned short> &hiddenLayersArchitecture,
         fakeEntries.emplace_back(fakeEntriesEpoch);
 
     }
+    std::cout <<realEntries.size()<<" ";
+    std::cout <<fakeEntries.size()<<" ";
 /*
     for(auto & first : entries){
         cout << "\n";
@@ -94,7 +96,7 @@ Network::~Network() {
 
 
 void Network::feedforward(const unsigned short numberOfTheEpoch, const bool &trainGenerator) {
-    trainGenerator ? std::cout<<"true" : std::cout<<"false";
+
     //going throught the generator and stopping at the begginning of the discriminator
     layers[0]->processMyNeuronsActivations(fakeEntries[numberOfTheEpoch]);
     for(unsigned y=1; y < indexStartDiscriminator; ++y){
@@ -105,21 +107,27 @@ void Network::feedforward(const unsigned short numberOfTheEpoch, const bool &tra
         layers[indexStartDiscriminator-1]->addActivations(realEntries[numberOfTheEpoch]); // utile pour la backpropagation
     }
     //going throught the rest of the network(the disciminator)
-        for(unsigned y=indexStartDiscriminator; y < layers.size(); ++y){
-            layers[y]->processMyNeuronsActivations(layers[y-1]->getMyactivations());
-        }
+    for(unsigned y=indexStartDiscriminator; y < layers.size(); ++y){
+        layers[y]->processMyNeuronsActivations(layers[y-1]->getMyactivations());
+    }
 
 
 
 }//feedforward
 
+/**
+ * return the output of the generator for the given entries
+ * @param entries test data to give to the generator
+ * @return output of the generator
+ */
 vector<vector<float>> Network::testFeedforward(const std::vector<float> &entries) {
-
+    //process the first layer activation
     layers[0]->processMyNeuronsActivations({entries});
-    for(unsigned i=1; i < layers.size(); ++i){
+    //process the rest of the generator layers's acitvations
+    for(unsigned i=1; i < indexStartDiscriminator; ++i){
         layers[i]->processMyNeuronsActivations(layers[i-1]->getMyactivations());
     }
-    vector<vector<float>> result = layers[layers.size()-1]->getMyactivations();
+    vector<vector<float>> result = layers[indexStartDiscriminator-1]->getMyactivations();
     resetActivations();
     return result;
 }//testFeedforward
@@ -129,7 +137,7 @@ std::ostream& operator<< (std::ostream& stream, Network & network) {
     stream << '\n';
     stream << "\nNETWORK of "<< network.layers.size()<<" layers :" << '\n';
     for (const auto layer : network.layers) {
-        stream << " LAYER ";
+        stream << " \nLAYER ";
         stream <<  * layer<<endl;
 
 
@@ -199,20 +207,28 @@ void Network::resetActivations() {
 }
 
 void Network::main() {
+    bool trainGenerator = false;
     for(unsigned short numberOfTheEpoch=0 ; numberOfTheEpoch<numberOfEpochs; ++numberOfTheEpoch){
-        if(numberOfTheEpoch%1000 == 0){
+        if(numberOfTheEpoch%30 == 0){
             std::cout <<'\n'<< " numberOfTheEpoch " << numberOfTheEpoch <<endl;
         }
-        bool trainGenerator = false;// numberOfTheEpoch %2 ==0; REMETTRE LA PARTIE COMMENTÉ // On train chacun son tour les réseaux
-
+       /* if(numberOfTheEpoch%4 == 0 && numberOfTheEpoch>30){
+           trainGenerator = !trainGenerator;
+        }*/
+       // bool trainGenerator = false;//bool trainGenerator = numberOfTheEpoch %2 ==0; // if false we will train the discriminator
+        trainGenerator ? std::cout<<"trainning the Generator" : std::cout<<"Discriminator";
         feedforward(numberOfTheEpoch, trainGenerator);
 
 
-        //processCost(numberOfTheEpoch);
-       // std::cout << "\nEpoch : "<< numberOfTheEpoch<< " mean error "<< processMeanError();
+
+
+        processCost(numberOfTheEpoch);
+         std::cout << "\nEpoch : "<< numberOfTheEpoch<< " mean error "<< processMeanError();
 
         backPropagation(numberOfTheEpoch, trainGenerator);
-        //std::cout << *this;
+        if(numberOfTheEpoch > numberOfEpochs *0.99){
+            std::cout << *this;
+        }
         gradientDescent(numberOfTheEpoch, trainGenerator);
 
         resetActivations();
@@ -242,7 +258,7 @@ void Network::backPropagation(const unsigned short &numberOfTheEpoch, const bool
 
         //std::cout << * layers[layers.size()-1];
         for(unsigned i = (unsigned)layers.size()-2 ; i >= indexStartDiscriminator && i<999999 ; --i){ //use the partial derivative c/z of the n+1 layer to process it for n
-            //condition i<99999 car 0-1 = 42000000 dans le référentiel des unsigned
+            //condition i<99999 car 0-1 = 42000000 dans le référentiel des unsigned ints
             layers[i]->processLayerError(  layers[i+1] );
         }
 
@@ -251,19 +267,26 @@ void Network::backPropagation(const unsigned short &numberOfTheEpoch, const bool
 
 
 }
-
+/**
+ *
+ * @param batchNumber number of the batch we are trying to apply gradient descent to
+ * @param trainGenerator  true if we are applying grandient descent to train the generator,
+ * false if we are training the discriminator
+ */
 void Network::gradientDescent(unsigned short batchNumber, const bool &trainGenerator) {
 
     if(trainGenerator){//if we are training the generator
         for(unsigned layerNumber =layers.size()-1; layerNumber>0;--layerNumber  ){
-            layers[layerNumber]->layerGradientDescent(layers[layerNumber - 1]->getMyactivations(), regularizationTerm);
+            layers[layerNumber]->layerGradientDescent(layers[layerNumber - 1]->getMyactivations(), regularizationTerm,
+                                                      trainGenerator);
         }
-        layers[0]->layerGradientDescent(entries[batchNumber], regularizationTerm);
+        layers[0]->layerGradientDescent(entries[batchNumber], regularizationTerm, trainGenerator);
     }else{//if we are training the discriminator
 
 
         for(unsigned layerNumber =layers.size()-1; layerNumber>=indexStartDiscriminator;--layerNumber  ){
-            layers[layerNumber]->layerGradientDescent(layers[layerNumber - 1]->getMyactivations(), regularizationTerm);
+            layers[layerNumber]->layerGradientDescent(layers[layerNumber - 1]->getMyactivations(), regularizationTerm,
+                                                      trainGenerator);
         }
 
     }
