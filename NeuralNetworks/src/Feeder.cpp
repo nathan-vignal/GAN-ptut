@@ -4,6 +4,7 @@
 #include "Feeder.h"
 #include <cstdlib>
 #include <Feeder.h>
+#include <iostream>
 
 
 std::vector<std::pair<std::vector<float >,std::vector<float>>> Feeder::entrieExit{} ;
@@ -16,15 +17,20 @@ void Feeder::initEntrieAndExit() {
 
     std::pair<std::vector<float>, std::vector<float>> pair;
 
-    for (unsigned i = 0; i < 10000; ++i) {
+    for (unsigned i = 0; i < 15000; ++i) {
         //gestion fake
         pair.first = {static_cast <float> (rand()) / static_cast <float> (RAND_MAX),static_cast <float> (rand()) / static_cast <float> (RAND_MAX)};
-        pair.second = {0};
+        pair.second = {float((static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*0.1)};
+
+       // pair.first = {0,0};
+        //pair.second = {0};
+        //[0;0.1] works better than just 0 according to Utkarsh Desai
         entrieExit.emplace_back(pair);
 
         float x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+
         pair.first = {x, x*x};
-        pair.second = {1};
+        pair.second = { 1-(float((static_cast <float> (rand()) / static_cast <float> (RAND_MAX))*0.1))};
         entrieExit.emplace_back(pair);
     }
 }
@@ -36,6 +42,7 @@ void Feeder::initEntrieAndExit() {
  */
 void Feeder::createData(std::vector<std::vector<float>>  & entries, std::vector<std::vector<float> > & outputs){
         Feeder::initEntrieAndExit();
+
         for(unsigned i =0; i<entrieExit.size()-1; ++i){
             entries.emplace_back(entrieExit[i].first);
             outputs.emplace_back(entrieExit[i].second);

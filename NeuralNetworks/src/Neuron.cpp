@@ -127,7 +127,6 @@ void Neuron::gradientDescent(const std::vector<std::vector<float>> &previousLaye
                              const bool &trainingGenerator) {
     float objective;
     trainingGenerator?  objective = 1:objective = -1;
-    //std::cout << "\n passage dans gradient descent\n";
 
     //bias update
     float meanError = 0;
@@ -154,10 +153,10 @@ void Neuron::gradientDescent(const std::vector<std::vector<float>> &previousLaye
         //we take the negative gradient if we want to decrease then improving the discriminator
 
 
-        weights[weightNumber]  +=  (objective *(Network::learningRate/(errors.size()))) *  weightChangesSummed
-                -((Network::learningRate*regularizationTerm)/errors.size())*  weights[weightNumber];
+        weights[weightNumber]  +=  objective*( (Network::learningRate/(errors.size())) *  weightChangesSummed
+                -((Network::learningRate*regularizationTerm)/errors.size())*  weights[weightNumber]);
 
-            //calcul --> (-or +)*(learningRate/feedforwards) *  (weightChangesSummed)-(learningRate * lamba)/feedforwards)*weight
+            //calcul --> -or+ (learningRate/feedforwards) *  (weightChangesSummed)-(learningRate * lamba)/feedforwards)*weight
     }
 
 }

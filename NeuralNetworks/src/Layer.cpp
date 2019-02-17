@@ -85,8 +85,10 @@ void Layer::processLayerError(const Layer *nextLayer)  {
     //pour chaque neurone
     for(unsigned neuronNumber = 0; neuronNumber < neurons.size(); ++neuronNumber){
         float sum = 0;
-        //pour chaque feedforward
+
+        //pour erreurs dans le neuron suivants
         unsigned int numberOfFeedFowards = (unsigned int)nextLayer->getNeurons()[0]->getError().size();
+
         for(unsigned feedforwardNumber=0 ; feedforwardNumber < numberOfFeedFowards; ++feedforwardNumber){
             //pour chaque neurone dans le layer suivant
             double numberOfNeuronNextLayer = nextLayer->getNeurons().size();
@@ -111,7 +113,6 @@ void Layer::processLayerError(const Layer *nextLayer)  {
 void Layer::layerGradientDescent(const std::vector<std::vector<float>> &previousLayerActivation,
                                  const double &regularizationTerm, const bool &trainingGenerator) {
     for(auto neuron : neurons){
-        //std::cout << *neuron;
         neuron->gradientDescent(previousLayerActivation, regularizationTerm, trainingGenerator);
     }
 
