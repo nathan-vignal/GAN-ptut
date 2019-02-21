@@ -111,13 +111,24 @@ void Neuron::resetActivations() {
     preActivation.clear();
 }
 
-void Neuron::processLastNeuronError(const std::vector<float> &outputError) {
+void Neuron::processLastNeuronError(const std::vector<float> &outputError, const bool &trainGenerator) {
 
+    if(trainGenerator){
+        for ( unsigned short i = 0; i < outputError.size() ; ++i ) {
+            this->errors.emplace_back(this->getActivation(i) - outputError[i]);
+        }
+    }else{
+        for ( unsigned short  i = 0; i < outputError.size() ; ++i ) {
+            float error = outputError[i] - this->getActivation(i);
+            if( error <0){
+                this->errors.emplace_back(error +1  );
+            }else{
+                this->errors.emplace_back(error -1  );
+            }
 
-    for ( unsigned i = 0; i < outputError.size() ; ++i ) {
-        //std::cout <<" error for the last layer"<<this->getActivation(i) - outputError[i];
-        this->errors.emplace_back(this->getActivation(i) - outputError[i]);
+        }
     }
+
 }
 /**
  * process the changes on the weights and biaises

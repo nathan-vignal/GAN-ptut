@@ -279,7 +279,7 @@ void Network::backPropagation(const unsigned int &numberOfTheEpoch, const bool &
             if(data[0] <0.1)
                 outputToTrainOn.emplace_back(data);
         }
-        layers[layers.size()-1]->processLastLayerError(outputToTrainOn); //process the partial derivative of c with respect to z for the last layer
+        layers[layers.size() - 1]->processLastLayerError(outputToTrainOn,true); //process the partial derivative of c with respect to z for the last layer
         //std::cout << * layers[layers.size()-1];
         for(unsigned i = (unsigned)layers.size()-2 ; i >= 0 && i<999999; --i){ //use the partial derivative c/z of the n+1 layer to process it for n
             //condition i<99999 car 0-1 >0 dans le référentiel des unsigneds
@@ -287,7 +287,7 @@ void Network::backPropagation(const unsigned int &numberOfTheEpoch, const bool &
         }
     }else{ //if we are training the discriminator we don't backpropagate all the way to the beginning
 
-        layers[layers.size()-1]->processLastLayerError(output[numberOfTheEpoch]); //process the partial derivative of c with respect to z for the last layer
+        layers[layers.size() - 1]->processLastLayerError(output[numberOfTheEpoch], false); //process the partial derivative of c with respect to z for the last layer
 
         //std::cout << * layers[layers.size()-1];
         for(int i = layers.size()-2 ; i >= indexStartDiscriminator  ; --i){ //use the partial derivative c/z of the n+1 layer to process it for n

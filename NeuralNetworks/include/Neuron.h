@@ -42,7 +42,7 @@ public:
                              const bool &trainingGenerator);
 
     void resetActivations();
-    void processLastNeuronError(const std::vector<float> &outputError);
+    void processLastNeuronError(const std::vector<float> &outputError, const bool &trainGenerator);
 
     friend std::ostream &operator<<(std::ostream &os, const Neuron &neuron);
     void addActivation(const float & newActivation);

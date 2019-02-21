@@ -20,7 +20,7 @@ public:
     std::vector <std::vector<float>>  getMyactivations();
     void processMyNeuronsActivations(const std::vector <std::vector<float>> & previousLayerActivations);
     void resetActivations();
-    void processLastLayerError(std::vector<std::vector<float>> output);
+    void processLastLayerError(std::vector<std::vector<float>> output, const bool &trainGenerator);
     void processLayerError(const Layer *nextLayer) ;
     std::vector<float> getErrorFromVector();
     std::vector<float> getWeightFromVector();

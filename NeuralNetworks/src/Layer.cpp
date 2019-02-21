@@ -59,7 +59,7 @@ void Layer::resetActivations() {
  * process the derivative of c with respect to z for each neuron and for each feedforward
  * @param output expected output of the feedforward
  */
-void Layer::processLastLayerError(std::vector<std::vector<float>> output){
+void Layer::processLastLayerError(std::vector<std::vector<float>> output, const bool &trainGenerator) {
 
     //pour chaque neurone
     for(unsigned neuronNumber=0; neuronNumber<neurons.size();++neuronNumber){
@@ -69,7 +69,7 @@ void Layer::processLastLayerError(std::vector<std::vector<float>> output){
             outputForTheNeuronN.emplace_back(output[feedForwardNumber][neuronNumber]);
         }
         //donne au neuron le vecteur des valeurs attendu pour qu'il calcule son erreur à chaque feedForward
-        neurons[neuronNumber]->processLastNeuronError(outputForTheNeuronN);
+        neurons[neuronNumber]->processLastNeuronError(outputForTheNeuronN, trainGenerator);
 
     }
 
