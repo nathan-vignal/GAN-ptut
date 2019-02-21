@@ -35,7 +35,7 @@ public:
     void feedforward(const unsigned int &numberOfTheEpoch, const bool &trainGenerator);
     std::vector<float> testFeedforward(const std::vector<float> &entries, const bool &testGenerator);
     void processCost(const unsigned int &batchNumber);
-    long double processMeanError(const unsigned int &numberOfTheEpoch);
+    long double processMeanError();
     void resetActivations();
     //void vectorResizing(std::vector<std::vector<float>> vector, unsigned rows, unsigned columns );
     void backPropagation(const unsigned int &numberOfTheEpoch, const bool &trainGenerator);

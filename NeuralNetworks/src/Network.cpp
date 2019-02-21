@@ -186,26 +186,28 @@ void Network::processCost(const unsigned int &batchNumber) {
 
         }
         //
-        cost *= float(-1)/(lastLayerActivations.size()+1);
+        cost *= float(-1)/(lastLayerActivations.size());
 
         this->costs.emplace_back(cost);
     }
 
 }
-long double Network::processMeanError(const unsigned int &numberOfTheEpoch) {
-    processCost(numberOfTheEpoch);
-    long double mean = 0;
-    for(auto cost : costs){
-        if(cost >0) //we want the absolute value
-            mean += cost;
-        else
-            mean -= cost;
+long double Network::processMeanError() {
+    float meanError = 0;
+    for(auto neuron : layers[layers.size()-1]->getNeurons()){
+        for( auto neuronError : neuron->getErrors())
+        {
+            if(neuronError>0){
+                meanError += neuronError;
+            }else{
+                meanError -= neuronError;
+            }
+
+        }
     }
-    mean/= costs.size()+1;
-    if(mean != mean){ //en cas de Nan
-        std::cout << " ||la fonction cross entropy ne fonctionne pas pour ces résultat|| ";
-    }
-    return mean;
+    meanError /= layers[layers.size()-1]->getNeurons().size(); // meanError /= number of neurons
+    meanError /= layers[layers.size()-1]->getNeurons()[0]->getActivations().size();// meanError /= number of feedforwards;
+    return meanError;
 
 
 
@@ -236,11 +238,6 @@ void Network::main() {
     bool trainGenerator = false;
     for(unsigned int numberOfTheEpoch=0 ; numberOfTheEpoch<numberOfEpochs; ++numberOfTheEpoch){
 
-        /*if(numberOfTheEpoch%4 == 0 && numberOfTheEpoch>numberOfEpochs* 0.9){
-           trainGenerator = !trainGenerator;
-        }*/
-
-       // bool trainGenerator = false;//bool trainGenerator = numberOfTheEpoch %2 ==0; // if false we will train the discriminator
 
         feedforward(numberOfTheEpoch, trainGenerator);
 
@@ -251,8 +248,7 @@ void Network::main() {
         if(numberOfTheEpoch > numberOfEpochs ){
             std::cout << *this;
         }
-        processCost(numberOfTheEpoch);
-        long double meanError =  processMeanError(numberOfTheEpoch);
+        long double meanError = processMeanError();
         if(numberOfTheEpoch%100 == 0){
 
             std::cout << '\n' << " numberOfTheEpoch " << numberOfTheEpoch << " mean error " << meanError
@@ -260,10 +256,9 @@ void Network::main() {
             trainGenerator ? std::cout<<"Trainning the Generator" : std::cout<<"  Training the Discriminator"; std::cout <<"\n";
         }
         //statement can be simplified but it's easier to read that way ;)
-        if(meanError>0.18){ //if the error is high
-            trainGenerator = false; //on entraine le discriminateur
-        }else{
-            trainGenerator = true; //on entraine de générateur
+        if(meanError<0.2){ //if the current network to train is doing well
+            trainGenerator = !trainGenerator; //we change to network to train
+            cout <<" changing sides" ;
         }
         resetActivations();
     }

@@ -88,7 +88,7 @@ const float& Neuron::getActivation(const unsigned short adress) {
     return activations[adress];
 }
 
-std::vector<float> Neuron::getError() {
+std::vector<float> Neuron::getErrors() {
     return errors;
 }
 
@@ -136,8 +136,6 @@ void Neuron::processLastNeuronError(const std::vector<float> &outputError, const
  */
 void Neuron::gradientDescent(const std::vector<std::vector<float>> &previousLayerActivations, const double &regularizationTerm,
                              const bool &trainingGenerator) {
-    float objective;
-    trainingGenerator?  objective = 1:objective = -1;
 
     //bias update
     float meanError = 0;
@@ -148,7 +146,7 @@ void Neuron::gradientDescent(const std::vector<std::vector<float>> &previousLaye
     }
     meanError  /= errors.size();
 
-    bias += objective* Network::learningRate * meanError;
+    bias += - Network::learningRate * meanError;
 
     //weights update
     //  there as much weights in the current neuron as the number of neurons in the previous layer
@@ -164,7 +162,7 @@ void Neuron::gradientDescent(const std::vector<std::vector<float>> &previousLaye
         //we take the negative gradient if we want to decrease then improving the discriminator
 
 
-        weights[weightNumber]  +=  objective*( (Network::learningRate/(errors.size())) *  weightChangesSummed
+        weights[weightNumber]  +=  -( (Network::learningRate/(errors.size())) *  weightChangesSummed
                 -((Network::learningRate*regularizationTerm)/errors.size())*  weights[weightNumber]);
 
             //calcul --> -or+ (learningRate/feedforwards) *  (weightChangesSummed)-(learningRate * lamba)/feedforwards)*weight

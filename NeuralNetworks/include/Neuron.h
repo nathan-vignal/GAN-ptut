@@ -33,7 +33,7 @@ public:
     //accesseurs
     const std::vector<float> & getActivations() const;
     const float & getActivation(const unsigned short adress );
-    std::vector<float> getError();
+    std::vector<float> getErrors();
     std::vector<float> getWeights();
     void debugSetBias(int newBias);
 
