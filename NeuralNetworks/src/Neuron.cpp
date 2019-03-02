@@ -95,7 +95,7 @@ std::vector<float> Neuron::getErrors() {
 std::ostream &operator<<(std::ostream &os, const Neuron &neuron) {
     os << "neuron :";// << neuron.bias;
     //os<< neuron.error.size();
-    for (auto data : neuron.activations ){
+    for (auto data : neuron.errors ){
 
         os << data;
         os << "  ";
@@ -111,19 +111,22 @@ void Neuron::resetActivations() {
     preActivation.clear();
 }
 
-void Neuron::processLastNeuronError(const std::vector<float> &outputError, const bool &trainGenerator) {
+void Neuron::processLastNeuronError(const std::vector<float> &output, const bool &trainGenerator) {
 
-    if(trainGenerator){
-        for ( unsigned short i = 0; i < outputError.size() ; ++i ) {
-            this->errors.emplace_back(this->getActivation(i) - outputError[i]);
+    if(!trainGenerator){
+
+        for ( unsigned short i = 0; i < output.size() ; ++i ) {
+            this->errors.emplace_back(this->getActivation(i) - output[i]);
+
         }
     }else{
-        for ( unsigned short  i = 0; i < outputError.size() ; ++i ) {
-            float error = outputError[i] - this->getActivation(i);
+        for ( unsigned short  i = 0; i < output.size() ; ++i ) {
+            float error = this->getActivation(i) - output[i];
+
             if( error <0){
-                this->errors.emplace_back(error +1  );
+                this->errors.emplace_back(error +1);
             }else{
-                this->errors.emplace_back(error -1  );
+                this->errors.emplace_back(error -1);
             }
 
         }
@@ -136,17 +139,16 @@ void Neuron::processLastNeuronError(const std::vector<float> &outputError, const
  */
 void Neuron::gradientDescent(const std::vector<std::vector<float>> &previousLayerActivations, const double &regularizationTerm,
                              const bool &trainingGenerator) {
-
     //bias update
     float meanError = 0;
     //faire la moyenne de erreur du neurone
     for(auto feedforwardError : errors){
-
         meanError += feedforwardError;
     }
     meanError  /= errors.size();
 
     bias += - Network::learningRate * meanError;
+
 
     //weights update
     //  there as much weights in the current neuron as the number of neurons in the previous layer
@@ -162,10 +164,10 @@ void Neuron::gradientDescent(const std::vector<std::vector<float>> &previousLaye
         //we take the negative gradient if we want to decrease then improving the discriminator
 
 
-        weights[weightNumber]  +=  -( (Network::learningRate/(errors.size())) *  weightChangesSummed
-                -((Network::learningRate*regularizationTerm)/errors.size())*  weights[weightNumber]);
+        weights[weightNumber]  +=  - (Network::learningRate/(errors.size())) *  weightChangesSummed
+                                   -((Network::learningRate*regularizationTerm)/errors.size())*  weights[weightNumber];
+        //calcul --> -(learningRate/feedforwards) *  (weightChangesSummed)+(learningRate * lamba)/feedforwards)*weight
 
-            //calcul --> -or+ (learningRate/feedforwards) *  (weightChangesSummed)-(learningRate * lamba)/feedforwards)*weight
     }
 
 }
