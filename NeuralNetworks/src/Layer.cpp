@@ -99,8 +99,8 @@ void Layer::processLayerError(const Layer *nextLayer)  {
 
             }
 
-            neurons[neuronNumber]->addError(Neuron::sigmoidPrime( neurons[neuronNumber]->getPreActivation()[feedforwardNumber])* sum);
-                                        //10* in hope that it will help sovle the vanishing gradient problem
+            neurons[neuronNumber]->addError(
+                    Neuron::activationFunctionPrime(neurons[neuronNumber]->getPreActivation()[feedforwardNumber])* sum);
             sum = 0;
 
 

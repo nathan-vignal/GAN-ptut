@@ -16,7 +16,7 @@ int main()
 
 
 //Network(architecture, input data, expected input, nb batch, regularization term, indexStart Discriminator)
-    Network network({20,2,20}, input, output, 50000, 0.001, 2);
+    Network network({20,2,20}, input, output, 10000, 0.001, 2);
 
     //regularization term
 
@@ -55,7 +55,7 @@ int main()
     cout << "mean result for real inputs :"<< (sumResult/(realInputs.size())) <<endl ;
     cout << "\n \n ";
     //testing the generator
-    for(unsigned i = 0 ; i<10 ; ++i) {
+    for(unsigned i = 0 ; i<3 ; ++i) {
         cout << "\n";
         for (auto data : network.testFeedforward({static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
                                                   static_cast <float> (rand()) / static_cast <float> (RAND_MAX)},

@@ -72,6 +72,14 @@ Network::Network(const std::vector<unsigned short> &hiddenLayersArchitecture,
             if(output[batchNb][outputNb][0] > 0.89){
                 temp[batchNb].emplace_back(output[batchNb][outputNb]);
             }
+
+            //adding some noise to help solve the vanishing gradient problem
+            if(static_cast <float> (rand()) / static_cast <float> (RAND_MAX) <0.05){
+                std::cout <<"proc";
+                vector<float> noise = {static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
+                                   static_cast <float> (rand()) / static_cast <float> (RAND_MAX)};
+                    temp[batchNb].emplace_back(noise);
+            }
         }
     }
     output = temp;
@@ -274,6 +282,8 @@ void Network::main() {
         if(epochNb > numberOfEpochs-2 ){
             std::cout << *this;
         }
+
+
         long double meanError = processMeanError();
         if(epochNb%10000 == 0){
 
@@ -284,7 +294,7 @@ void Network::main() {
         if((trainGenerator && meanError < objective) ||( !trainGenerator && meanError<0.4)){ //if the current network to train is doing well
             //objective -= 0.01;
             trainGenerator = !trainGenerator; //we change to network to train
-            cout <<" changing sides" ;
+            //cout <<" changing sides" ;
         }
 
         resetActivations();

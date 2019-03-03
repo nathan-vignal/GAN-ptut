@@ -33,9 +33,23 @@ Neuron::~Neuron  ()
 float Neuron::sigmoid(float x) {
     return( 1/(1+float(exp(-x))));
 }
-
 float Neuron::sigmoidPrime(float x) {
     return( sigmoid(x)*(1-sigmoid(x)));
+}
+
+float Neuron::softplus(float x) {
+    return(float(log(1+exp(x))));
+}
+
+float Neuron::sofplusPrime(float x) {
+    return 1/(1+float(exp(-x)));
+}
+
+float Neuron::activationFunction(float x) {
+    return(sigmoid(x));
+}
+float Neuron::activationFunctionPrime(float x) {
+    return(sigmoidPrime(x));
 }
 
 
@@ -53,7 +67,7 @@ void Neuron::processActivations(const std::vector<std::vector<float>> &previousL
         sum += bias;
 
         preActivation.emplace_back(sum);
-        activations.emplace_back(sigmoid(sum)) ;
+        activations.emplace_back(activationFunction(sum)) ;
     }
 }
 
@@ -95,7 +109,7 @@ std::vector<float> Neuron::getErrors() {
 std::ostream &operator<<(std::ostream &os, const Neuron &neuron) {
     os << "neuron :";// << neuron.bias;
     //os<< neuron.error.size();
-    for (auto data : neuron.errors ){
+    for (auto data : neuron.activations){
 
         os << data;
         os << "  ";

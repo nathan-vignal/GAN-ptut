@@ -25,9 +25,16 @@ public:
     Neuron( const unsigned short & nbWeights );
     virtual ~Neuron();
     void processActivations(const std::vector<std::vector<float>>& previousLayerActivations);
+
     static float sigmoid(float x);
-    static std::vector<float> hadamardProduct(const std::vector<float> & vector1 ,const std::vector<float> & vector2 );
     static float sigmoidPrime(float x);
+    static float softplus(float x);
+    static float sofplusPrime(float x);
+    static float activationFunction(float x);
+    static float activationFunctionPrime(float x);
+
+    static std::vector<float> hadamardProduct(const std::vector<float> & vector1 ,const std::vector<float> & vector2 );
+
 
 
     //accesseurs
