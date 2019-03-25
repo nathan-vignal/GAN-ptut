@@ -75,7 +75,6 @@ Network::Network(const std::vector<unsigned short> &hiddenLayersArchitecture,
 
             //adding some noise to help solve the vanishing gradient problem
             if(static_cast <float> (rand()) / static_cast <float> (RAND_MAX) <0.05){
-                std::cout <<"proc";
                 vector<float> noise = {static_cast <float> (rand()) / static_cast <float> (RAND_MAX),
                                    static_cast <float> (rand()) / static_cast <float> (RAND_MAX)};
                     temp[batchNb].emplace_back(noise);
@@ -270,6 +269,7 @@ void Network::resetActivations() {
 void Network::main() {
     float objective = 0.5;
     bool trainGenerator = false;
+    //unsigned long cnt
     for(unsigned int epochNb=0 ; epochNb<numberOfEpochs; ++epochNb){
 
 

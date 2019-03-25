@@ -135,7 +135,15 @@ void Neuron::processLastNeuronError(const std::vector<float> &output, const bool
         }
     }else{
         for ( unsigned short  i = 0; i < output.size() ; ++i ) {
-            float error = this->getActivation(i) - output[i];
+            //when we are training the generator we want the objective to be clear, so we lift the noise we had set up
+            //in the feeder section
+            float undoNoise ;
+            if(output[i] >0.89){
+                undoNoise = 1;
+            }else{
+                undoNoise =0;
+            }
+            float error = this->getActivation(i) - undoNoise;
 
             if( error <0){
                 this->errors.emplace_back(error +1);

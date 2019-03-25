@@ -16,7 +16,7 @@ int main()
 
 
 //Network(architecture, input data, expected input, nb batch, regularization term, indexStart Discriminator)
-    Network network({20,2,20}, input, output, 10000, 0.001, 2);
+    Network network({20,2,20}, input, output, 10000, 0.1, 2);
 
     //regularization term
 
